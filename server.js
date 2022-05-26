@@ -6,16 +6,19 @@ const env = process.env.CURRENTENV;
 
 const regexpCommand = new RegExp(/^!([a-zA-Z0-9]+)(?:\W+)?(.*)?/);
 
-function outsideFunction(args){
-    return `Success ${args[0]}`;
-}
+let activeExtensions = [
+    "default",
+    "spotify"
+];
 
-const commands = {
-    website: {
-        response: 'https://spacejelly.dev'
-    },
-    upvote: {
-        response: function(args){ outsideFunction(args)}
+let extensions = [];
+
+let commands = {}
+
+for (let i = 0; i < activeExtensions.length; i++) {
+    extensions.push(require('./src/extension/' + activeExtensions[i]));
+    for (const [key, value] of Object.entries(extensions[extensions.length - 1].commands)) {
+        commands[key] = value;
     }
 }
 
@@ -39,29 +42,40 @@ client.on('message', async (channel, context, message) => {
     const isNotBot = context.username.toLowerCase() !== process.env.TWITCH_BOT_USERNAME.toLowerCase();
 
     if (isNotBot) {
-        let [raw, command,argument] = [undefined,undefined,undefined];
-        try{
+        let [raw, command, argument] = [undefined, undefined, undefined];
+        try {
             [raw, command, argument] = message.match(regexpCommand);
-            console.log(raw, command, argument);
-        }catch (e){
-            console.log("there was an error :"+e);
+        } catch (e) {
+            //console.log("there was an error :" + e);
         }
-        if ( command ) {
+        if (command) {
             console.log("Command detected");
-            const { response } = commands[command] || {};
-            if ( typeof response === 'function' ) {
-                client.say(channel, response(argument.split(" ")));
-            } else if ( typeof response === 'string' ) {
-                client.say(channel, response);
+            const {response} = commands[command] || {};
+            let functionResponse;
+            if (typeof response === 'function') {
+                functionResponse = response(argument);
+            } else if (typeof response === 'string') {
+                functionResponse = response;
             }
-        }else{
-            if(env === "DEV"){
-                console.log('channel', {
-                    channel,
-                    user: context.username,
-                    message,
-                });
+            if (functionResponse !== undefined) {
+                if (typeof functionResponse === "object") {
+                    if (Array.isArray(functionResponse)) {
+                        for (let i = 0; i < functionResponse.length; i++) {
+                            client.say(channel, functionResponse[i].toString());
+                        }
+                    }
+                } else {
+                    client.say(channel, functionResponse.toString());
+                }
             }
+        }
+    } else {
+        if (env === "DEV") {
+            console.log('channel', {
+                channel,
+                user: context.username,
+                message,
+            });
         }
     }
 });
