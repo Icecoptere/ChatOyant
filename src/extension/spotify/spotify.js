@@ -103,7 +103,7 @@ async function getToken(cached = true) {
 }
 
 async function spotiReq(options, cached = true, stackCall = 0,postData=null) {
-    if(!'headers' in options || !cached){
+    if(postData === null){
         options['headers'] = {'Authorization': `Bearer ${await getToken(cached)}`}
     }
     return new Promise(function (resolve, reject) {
@@ -125,14 +125,14 @@ async function spotiReq(options, cached = true, stackCall = 0,postData=null) {
                                 resolve(false);
                             } else if (jsonRes['error']['status'] === 401) {
                                 console.log("Access token expired");
-                                spotiReq(options, false, stackCall + 1);
+                                resolve(spotiReq(options, false, stackCall + 1));
                             } else if (jsonRes['error']['status'] === 404) {
                                 if (jsonRes['error']['reason'] === "NO_ACTIVE_DEVICE") {
                                     console.log("Spotify is not active");
                                 }
                             } else {
                                 console.error(jsonRes);
-                                spotiReq(options, false, stackCall + 1);
+                                resolve(spotiReq(options, false, stackCall + 1));
                             }
                         } else {
                             resolve(jsonRes);
