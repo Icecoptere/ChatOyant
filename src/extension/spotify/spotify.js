@@ -34,8 +34,10 @@ async function completeInit() {
         let intervalWaitCreation = setInterval(async function () {
             try {
                 let refresh_token = await readFile('src/extension/spotify/refresh_token.txt');
-                resolve("Yessaille");
-                clearInterval(intervalWaitCreation);
+                if(refresh_token !==undefined){
+                    resolve("Yessaille");
+                    clearInterval(intervalWaitCreation);
+                }
             } catch (e) {
                 console.log("The refresh token file still doesn't exist");
             }
@@ -73,7 +75,7 @@ async function getRefreshToken(){
         if(refresh_token === undefined) {
             throw new Error();
         }else{
-            resolve(refresh_token);
+            resolve(refresh_token.replace("\n",""));
         }
     } catch (e) {
         let resultFromInit = await completeInit();
@@ -94,7 +96,7 @@ async function getToken(cached = true) {
             if (access_token === undefined) {
                 throw new Error();
             }else{
-                resolve(access_token);
+                resolve(access_token.replace("\n",""));
             }
         }catch (e){
             resolve(getToken(false));
