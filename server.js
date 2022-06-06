@@ -28,20 +28,35 @@ const verbose = process.env.VERBOSE === "true";
 
 let activeExtensions = [
     "default",
-    "spotify"
+    "spotify",
+    "arrivalSound"
 ];
 
 let extensions = [];
+let extIdReceiveAllMessages = [];
+
 
 let commands = {}
 
 for (let i = 0; i < activeExtensions.length; i++) {
     extensions.push(require('./src/extension/' + activeExtensions[i] + '/' + activeExtensions[i]));
+    console.log("Loading extension :"+activeExtensions[i]);
+    if(extensions[i].reactToMessage){
+        extIdReceiveAllMessages.push(i);
+    }
     for (const [key, value] of Object.entries(extensions[extensions.length - 1].commands)) {
-        commands[key] = [value.response, value.permission ? value.permission : 1];
+        if(key in commands){
+            commands[key].push([value.response, value.permission ? value.permission : 1]);
+        }else{
+            commands[key] = [[value.response, value.permission ? value.permission : 1]];
+        }
         if ("alias" in value) {
             for (let j = 0; j < value['alias'].length; j++) {
-                commands[value['alias'][j]] = [value.response, value.permission ? value.permission : 1];
+                if(value['alias'][j] in commands){
+                    commands[value['alias'][j]].push([value.response, value.permission ? value.permission : 1]);
+                }else{
+                    commands[value['alias'][j]] = [[value.response, value.permission ? value.permission : 1]];
+                }
             }
         }
     }
@@ -111,7 +126,8 @@ function filterText(text) {
 }
 
 client.on('message', async (channel, context, message) => {
-    const isNotBot = context.username.toLowerCase() !== process.env.TWITCH_BOT_USERNAME.toLowerCase();
+    let username = context.username;
+    const isNotBot = username.toLowerCase() !== process.env.TWITCH_BOT_USERNAME.toLowerCase();
 
     if (isNotBot) {
         let [raw, command, argument, filteredCommand, filteredArguments] = [undefined, undefined, undefined, undefined, undefined];
@@ -120,39 +136,44 @@ client.on('message', async (channel, context, message) => {
         } catch (e) {
             //console.log("there was an error :" + e);
         }
+        for(let i=0; i<extIdReceiveAllMessages.length; i++){
+            let response = await extensions[extIdReceiveAllMessages[i]].reactToMessage.response(context['display-name'], message, context);
+        }
         if (filteredCommand) {
-            let functionPermission = commands[filteredCommand][1] || null;
-            let permissionLevel = 1;
-            let badges = context['badges'];
-            if (badges !== null) {
-                if ("vip" in badges) {
-                    permissionLevel = 2;
+            for(let p=0; p<commands[filteredCommand].length; p++){
+                let functionPermission = commands[filteredCommand][p][1] || null;
+                let permissionLevel = 1;
+                let badges = context['badges'];
+                if (badges !== null) {
+                    if ("vip" in badges) {
+                        permissionLevel = 2;
+                    }
+                    if ("moderator" in badges) {
+                        permissionLevel = 3;
+                    }
+                    if ("broadcaster" in badges) {
+                        permissionLevel = 4;
+                    }
                 }
-                if ("moderator" in badges) {
-                    permissionLevel = 3;
-                }
-                if ("broadcaster" in badges) {
-                    permissionLevel = 4;
-                }
-            }
-            console.log("[" + permissionLevel.toString() + "] " + context.username + ': ' + filteredCommand + " " + argument);
-            if (functionPermission !== null && permissionLevel >= functionPermission) {
-                let response = commands[filteredCommand][0] || {};
-                let functionResponse;
-                if (typeof response === 'function') {
-                    functionResponse = await response(argument);
-                } else if (typeof response === 'string') {
-                    functionResponse = response;
-                }
-                if (functionResponse !== undefined) {
-                    if (typeof functionResponse === "object") {
-                        if (Array.isArray(functionResponse)) {
-                            for (let i = 0; i < functionResponse.length; i++) {
-                                client.say(channel, functionResponse[i].toString());
+                console.log("[" + permissionLevel.toString() + "] " + context.username + ': ' + filteredCommand + " " + argument);
+                if (functionPermission !== null && permissionLevel >= functionPermission) {
+                    let response = commands[filteredCommand][p][0] || {};
+                    let functionResponse;
+                    if (typeof response === 'function') {
+                        functionResponse = await response(argument);
+                    } else if (typeof response === 'string') {
+                        functionResponse = response;
+                    }
+                    if (functionResponse !== undefined) {
+                        if (typeof functionResponse === "object") {
+                            if (Array.isArray(functionResponse)) {
+                                for (let i = 0; i < functionResponse.length; i++) {
+                                    client.say(channel, functionResponse[i].toString());
+                                }
                             }
+                        } else {
+                            client.say(channel, functionResponse.toString());
                         }
-                    } else {
-                        client.say(channel, functionResponse.toString());
                     }
                 }
             }

@@ -253,6 +253,7 @@ module.exports = {
                 'songrequest',
                 'addsong',
                 'ajouterchanson',
+                'jeveuxecouterca',
                 'nouvellechanson',
                 'jeveuxmettrecettechanson',
                 'jvmcc',
