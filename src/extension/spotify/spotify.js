@@ -178,6 +178,18 @@ async function pause() {
     console.log(resp);
 }
 
+async function addToPlaylist(trackUri, playlistID="13L3eHr8hLWwUESMtp0crk"){
+    return new Promise(async function(resolve){
+    let options = {
+        'method': 'POST',
+        'hostname': 'api.spotify.com',
+        'path': '/v1/playlists/'+playlistID+'/tracks?uris='+trackUri,
+        'maxRedirects': 20
+    };
+    resolve(await spotiReq(options));
+    });
+}
+
 async function searchSong(query) {
     return new Promise(async function (resolve) {
         let searchV;
@@ -239,6 +251,7 @@ async function songRequest(arg) {
     if (searchResults !== null) {
         let wasAddedToQueue = await addToQueue(searchResults[0]);
         if (wasAddedToQueue) {
+            await addToPlaylist(searchResults[0]);
             return `SingsNote ${searchResults[1]} - ${searchResults[2]} SingsNote`;
         }
     } else {

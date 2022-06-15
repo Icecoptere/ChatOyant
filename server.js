@@ -3,6 +3,17 @@ console.log("On lance le Chat Oyant");
 const tmi = require('tmi.js');
 require('dotenv').config();
 
+// https://github.com/Durss/TwitchEventSub
+let durssEventSub = require("./src/durssEventSub/durssEventSub");
+
+durssEventSub.onEvent = function(json){
+    // React to any event here
+    console.log("An event just happened");
+    console.log(json);
+}
+
+module.exports = durssEventSub;
+
 const {Worker} = require('worker_threads')
 
 function runService() {
@@ -29,7 +40,8 @@ const verbose = process.env.VERBOSE === "true";
 let activeExtensions = [
     "default",
     "spotify",
-    "arrivalSound"
+    "arrivalSound",
+    "interactionBoard"
 ];
 
 let extensions = [];
