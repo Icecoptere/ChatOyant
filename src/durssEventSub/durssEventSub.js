@@ -2,6 +2,7 @@ const express =  require('express');
 const ngrok =  require('ngrok');
 const fetch =  require('node-fetch');
 const HmacSHA256 = require('crypto-js').HmacSHA256;
+require('dotenv').config();
 
 // Durss Copyright Github - https://github.com/Durss/TwitchEventSub
 
@@ -15,19 +16,19 @@ const HmacSHA256 = require('crypto-js').HmacSHA256;
 const SERVER_PORT = 3000;
 
 //Create a (free) account on https://ngrok.com and generate a token
-const NGROK_AUTH_TOKEN = "1yXiEQcPHFvmiYdqSdG0zr03Tsn_4hEAsfcjcMShkLprpqUXX";
+const NGROK_AUTH_TOKEN = process.env.NGROK_AUTH_TOKEN;
 
 //Twitch user ID
-const TWITCH_BROADCASTER_ID = "43368750";
+const TWITCH_BROADCASTER_ID = process.env.TWITCH_BROADCASTER_ID;
 
 //Client ID of a twitch APP
-const TWITCH_CLIENT_ID = "vz2y9mlwg4vdxour6or0j6xy3l2tvt";
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 
 //Secret ID of a twitch APP
-const TWITCH_CLIENT_SECRET = "o373p4sq2y3cbrazm0a81htnvmv6h7";
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 
 //Key used to generate a validation hash. Write anything you want!
-const TWITCH_EVENTSUB_SECRET = "Fascicule";
+const TWITCH_EVENTSUB_SECRET = "PenisEater";
 
 //Events to subscribe to
 //Full list available here : https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types
