@@ -1,5 +1,5 @@
 const express = require('express');
-const server = express();
+const app = express();
 const path = require('path');
 const router = express.Router();
 const fs = require('fs');
@@ -7,6 +7,12 @@ let https = require('follow-redirects').https;
 let qs = require('querystring');
 const {json} = require("express");
 require('dotenv').config({ path: `.env.spotify` })
+
+let portNb = 8000;
+
+// ajout de socket.io
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 
 function writeFile(filename, content){
     fs.writeFile(filename, content, err=>{
@@ -63,7 +69,7 @@ async function getRefreshToken(code){
     })
 }
 
-server.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/public'));
 
 router.get('/spotify',function(req,res){
     res.sendFile(path.join(__dirname+'/public/spotify/spotify.html'));
@@ -77,9 +83,17 @@ router.get('/giveSpotifyToken',async function(req,res){
 
 });
 
+// établissement de la connexion
+io.on('connection', (socket) =>{
+    console.log(`Connecté au client ${socket.id}`)
+})
 
-let portNb = 8000;
-server.use('/', router);
+
+router.get("/"+process.env.SINGLE_ID+"/overlay", async function(req, res){
+    res.sendFile(path.join(__dirname+'/public/overlay/overlay.html'));
+})
+
+app.use('/', router);
 server.listen(process.env.port || portNb);
 
 console.log(`Running at Port ${portNb}`);

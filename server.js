@@ -9,7 +9,8 @@ let durssEventSub = require("./src/durssEventSub/durssEventSub");
 durssEventSub.onEvent = function(json){
     // React to any event here
     console.log("An event just happened");
-    console.log(json);
+    console.log(json.subscription);
+    console.log(json.event);
 }
 
 module.exports = durssEventSub;
@@ -151,7 +152,7 @@ client.on('message', async (channel, context, message) => {
         for(let i=0; i<extIdReceiveAllMessages.length; i++){
             let response = await extensions[extIdReceiveAllMessages[i]].reactToMessage.response(context['display-name'], message, context);
         }
-        if (filteredCommand) {
+        if (filteredCommand && filteredCommand in commands) {
             for(let p=0; p<commands[filteredCommand].length; p++){
                 let functionPermission = commands[filteredCommand][p][1] || null;
                 let permissionLevel = 1;

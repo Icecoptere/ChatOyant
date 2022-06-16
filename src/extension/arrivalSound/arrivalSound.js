@@ -25,11 +25,14 @@ async function playSound(filename, tryDefaultIfFail = false){
         if(isFolder){
             resolve(true);
             fs.readdir(pathToFile, async function(err, files){
-                let soundName = files[rand(0,files.length-1)];
+                let soundName = files[rand(0,files.length-1)].substring();
                 resolve(await playSound(filename+"\\"+soundName));
             })
 
         }else{
+            if(!pathToFile.includes(".mp3")){
+                pathToFile = pathToFile+".mp3";
+            }
             let soundExists = fs.existsSync(pathToFile);
             if(soundExists){
                 sound.play(pathToFile, volume)
@@ -90,9 +93,9 @@ async function reactToMessage(username, message, context){
         if (username.toLowerCase() in dictSpecialGroup) {
             await playSound(dictSpecialGroup[username.toLowerCase()]);
         } else if (context['first-msg']) {
-            await playSound("default\\firstMessage.mp3")
+            await playSound("default\\firstMessage")
         } else {
-            await playSound("\\users\\"+username.toLowerCase()+".mp3", true);
+            await playSound("\\users\\"+username.toLowerCase(), true);
         }
     }
 }
