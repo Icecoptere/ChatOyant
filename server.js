@@ -40,9 +40,6 @@ const verbose = process.env.VERBOSE === "true";
 
 let activeExtensions = [
     "default",
-    "spotify",
-    "arrivalSound",
-    "interactionBoard"
 ];
 
 let extensions = [];
@@ -80,7 +77,7 @@ const client = new tmi.Client({
         reconnect: true
     },
     channels: [
-        'icecoptered'
+        'aufinema'
     ],
     identity: {
         username: process.env.TWITCH_BOT_USERNAME,
@@ -173,7 +170,7 @@ client.on('message', async (channel, context, message) => {
                     let response = commands[filteredCommand][p][0] || {};
                     let functionResponse;
                     if (typeof response === 'function') {
-                        functionResponse = await response(argument);
+                        functionResponse = await response(context,argument);
                     } else if (typeof response === 'string') {
                         functionResponse = response;
                     }
