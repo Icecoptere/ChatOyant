@@ -93,6 +93,10 @@ router.get("/"+process.env.SINGLE_ID+"/overlay", async function(req, res){
     res.sendFile(path.join(__dirname+'/public/overlay/overlay.html'));
 })
 
+router.get("/"+process.env.SINGLE_ID+"/youtubeReq", async function(req, res){
+    res.sendFile(path.join(__dirname+'/public/overlay/overlay.html'));
+})
+
 app.use('/', router);
 server.listen(process.env.port || portNb);
 

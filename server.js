@@ -72,12 +72,14 @@ for (let i = 0; i < activeExtensions.length; i++) {
     }
 }
 
+let channel = 'aufinema';
+
 const client = new tmi.Client({
     connection: {
         reconnect: true
     },
     channels: [
-        'aufinema'
+        channel
     ],
     identity: {
         username: process.env.TWITCH_BOT_USERNAME,
@@ -136,6 +138,10 @@ function filterText(text) {
 }
 
 client.on('message', async (channel, context, message) => {
+    /*
+    console.log(context);
+    console.log(message);
+     */
     let username = context.username;
     const isNotBot = username.toLowerCase() !== process.env.TWITCH_BOT_USERNAME.toLowerCase();
 
@@ -147,7 +153,7 @@ client.on('message', async (channel, context, message) => {
             //console.log("there was an error :" + e);
         }
         for(let i=0; i<extIdReceiveAllMessages.length; i++){
-            let response = await extensions[extIdReceiveAllMessages[i]].reactToMessage.response(context['display-name'], message, context);
+            let response = await extensions[extIdReceiveAllMessages[i]].reactToMessage.response(context['display-name'], message, context, client, channel);
         }
         if (filteredCommand && filteredCommand in commands) {
             for(let p=0; p<commands[filteredCommand].length; p++){
@@ -170,7 +176,7 @@ client.on('message', async (channel, context, message) => {
                     let response = commands[filteredCommand][p][0] || {};
                     let functionResponse;
                     if (typeof response === 'function') {
-                        functionResponse = await response(context,argument);
+                        functionResponse = await response(context,argument, client, channel);
                     } else if (typeof response === 'string') {
                         functionResponse = response;
                     }
